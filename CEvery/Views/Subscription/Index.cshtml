@@ -1,0 +1,221 @@
+﻿@using PagedList
+@using PagedList.Mvc
+@model IPagedList<CEvery.Models.Subscription>
+
+@*@model IEnumerable<CEvery.Models.Subscription>*@
+@using Microsoft.AspNet.Identity
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+@{
+    ViewBag.Title = "Subscription";
+}
+
+<h2>Subscriber List</h2>
+
+<p>
+    @*@Html.ActionLink("Create New", "Create")*@
+    <span class="glyphicon glyphicon-plus"></span> @Html.ActionLink("Create New", "Create")
+</p>
+
+@using (Html.BeginForm("Index", "Subscription", FormMethod.Get))
+{
+    <p>
+        Find by Customer: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+        |
+        Type: @Html.TextBox("TypeSearch", ViewBag.CurrentFilter as string)
+        |
+        City: @Html.TextBox("SearchStringDistrict", ViewBag.CurrentFilter as string)
+        |
+        Pin: @Html.TextBox("SearchStringPin", ViewBag.CurrentFilter as string)
+        <input type="submit" value="Search" />
+        <input type="submit" value="Print" onclick="DataPrint()" />
+    </p>
+
+    @*<p>
+
+        </p>*@
+
+    @*<p>
+
+        </p>*@
+}
+
+<script>
+    function DataPrint()
+    {
+        var prtContent = document.getElementById('printView');
+        prtContent.border = 1; //set no border here
+        var Print = window.open('','','left=100,top=100,width=1000,height=1000,toolbar=0,scrollbars=1,status=0,resizable=1');
+        Print.document.write(prtContent.outerHTML);
+        Print.document.close();
+        Print.focus();
+        Print.print();
+        Print.close();
+    }
+
+</script>
+
+<table class="table" id="mainGrid">
+    <tr>
+        <th></th>
+        <th>
+            @Html.DisplayNameFor(model => model.First().SubscriptionNo)
+        </th>
+        <th>
+            @Html.ActionLink("CustomerName", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
+            @*@Html.DisplayNameFor(model => model.CustomerName)*@
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.First().Type)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.First().Address1)
+        </th>
+        @*<th>
+            @Html.DisplayNameFor(model => model.Address2)
+        </th>*@
+        <th>
+            @Html.DisplayNameFor(model => model.First().City)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.First().Pin)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.First().DueDate)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {   
+    
+   
+    
+    <tr>
+        <td>
+            @if (item.DueDate <= DateTime.Now || item.IsInvalid)
+            {
+                <span class="glyphicon glyphicon-flag" style="color:red"></span>
+            }
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SubscriptionNo)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CustomerName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Type)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Address1)
+        </td>
+        @*<td>
+            @Html.DisplayFor(modelItem => item.Address2)
+        </td>*@
+        <td>
+            @Html.DisplayFor(modelItem => item.City)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Pin)
+        </td>
+        <td>
+            @*@Html.DisplayFor(modelItem => item.DueDate)*@
+            @Html.LabelFor(modelItem => item.DueDate, String.Format("{0:d}", item.DueDate), new { @class = "myLabel" })
+        </td>
+        <td>
+            <a href="@Url.Action("Edit", "Subscription", new { id = item.SNo })"><span class="glyphicon glyphicon-pencil"></span></a>
+            <a href="@Url.Action("Details", "Subscription", new { id = item.SNo })"><span class="glyphicon glyphicon-th-list"></span></a>
+            <a href="@Url.Action("Delete", "Subscription", new { id = item.SNo })"><span class="glyphicon glyphicon-remove"></span></a>
+            
+        </td>
+    </tr>
+}
+
+</table>
+<br />
+Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index",
+    new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))
+
+
+<style>
+    .myLabel{
+        font-weight:normal !important;
+    }
+
+</style>
+
+@*<style type="text/css">
+    .leftDivItem, .rightDivItem, .middleDivItem {
+        border: double;
+        float: left;
+        margin-left:2px;
+        width: 33%; /*Maybe the width should less than 50% to fit more browser*/
+        /*overflow: hidden;*/
+    }
+
+    #printView {
+        width: 100%;
+        font-size: 12px;
+        overflow: hidden; /* contain floated elements */
+    }
+</style*@
+<style>
+    .print{
+        display:none;
+    }
+
+</style>
+
+<div id="printView" class="print" style="width:100%; font-size:12px;overflow:hidden">
+    @{
+
+    int i = 0;
+    foreach (var item in @ViewBag.AllModelValue)
+    {
+        if (!item.IsInvalid)
+        {
+            if (item.DueDate >= DateTime.Now)
+            {
+        if (i % 3 == 0)
+        {
+            <div class="leftDivItem" style="border-style:solid;border-width:thin; float: left; margin-left: 2px; width: 30%; height: 10%; overflow:hidden; padding-left:5px; padding-bottom:5px; padding-top:5px;">
+                @item.SubscriptionNo<br />
+                @item.CustomerName<br />
+                @item.Address1<br />
+                @item.Address2, @item.Address3<br />
+                @item.City - @item.Pin<br />
+                @item.Phone
+            </div>
+        }
+        else if (i % 3 == 1)
+        {
+            <div class="middleDivItem" style="border-style: solid; border-width: thin; float: left; margin-left: 2px; width: 30%; height: 10%; overflow:hidden; padding-left: 5px; padding-bottom: 5px; padding-top: 5px; ">
+                @item.SubscriptionNo<br />
+                @item.CustomerName<br />
+                @item.Address1<br />
+                @item.Address2, @item.Address3<br />
+                @item.City - @item.Pin<br />
+                @item.Phone
+            </div>
+
+        }
+        else if (i % 3 == 2)
+        {
+            <div class="rightDivItem" style="border-style: solid; border-width: thin; float: left; margin-left: 2px; width: 30%; height: 10%; overflow:hidden; padding-left: 5px; padding-bottom: 5px; padding-top: 5px; ">
+                @item.SubscriptionNo<br />
+                @item.CustomerName<br />
+                @item.Address1<br />
+                @item.Address2, @item.Address3<br />
+                @item.City - @item.Pin<br />
+                @item.Phone
+            </div>
+        }
+        i++;
+        }
+        }
+    }
+
+}
+</div>
